@@ -15,7 +15,7 @@ Both the **original pipeline** and the **validation pipeline** (for literature-d
 - [5. Input File Requirements](#5-input-file-requirements)
 - [6. Troubleshooting](#6-troubleshooting)
 - [7. Citation](#7-citation)
-
+vjv
 ---
 
 ## 1. System Requirements
@@ -128,6 +128,15 @@ python prerequisites/cleanup_if_not_running.py   # optional
 #### Step 1 — MS/MS Analogue Prediction (MS2Query)
 
 **Environment:** `ms2query-env`
+This pipeline requires the MS2Lib reference library used by MS2Query.  
+The required `ms2library/` folder is already included in the repository (under `/resources/ms2library/`).
+
+Before running the script, update the path inside `ms2query_prediction.py`:
+```python
+ms2lib_path = "resources/ms2library"
+
+Then run:-
+
 ```bash
 conda activate ms2query-env
 python original_pipeline/ms2query_prediction.py
