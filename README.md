@@ -127,11 +127,28 @@ python prerequisites/cleanup_if_not_running.py   # optional
 
 #### Step 1 — MS/MS Analogue Prediction (MS2Query)
 
-**Environment:** `ms2query-env`
-This pipeline requires the MS2Lib reference library used by MS2Query.  
-The required `ms2library/` folder is already included in the repository (under `/resources/ms2library/`).
+**Environment:** `ms2query-env`  
+1. Before running ms2query_prediction.py, users must download the official MS2Query library files.
+Download the MS2 Library (Version V8)
 
-Before running the script, update the path inside `ms2query_prediction.py`:
+All required files are available at the following Zenodo DOI:
+
+https://doi.org/10.5281/zenodo.13348638
+ (Version V8)
+
+Download all 8 files provided in this Zenodo record, as MS2Query requires the complete set for correct operation.
+
+2. After downloading:
+Create a directory named: ms2_library/
+Place all 8 downloaded files from Zenodo inside this folder.
+
+3. Before running the script, update the path of MS2Lib inside `ms2query_prediction.py`:
+Important: Update the Library Path in the Script
+Inside ms2query_prediction.py, update the directory path pointing to your MS2 library:
+MS2_LIBRARY_DIR = "path/to/ms2_library/"
+Make sure this path correctly matches the location where you saved the 8 files.
+
+
 ```python
 ms2lib_path = "resources/ms2library"
 
@@ -176,6 +193,31 @@ CSV with:
 ---
 
 #### Step 3 — Reverse Biotransformation (RetroRules + BioTransformer)
+
+1. RetroRules File Required
+
+The workflow requires the RetroRules pre-parsed reaction rule file
+retrorules_rr02_rp2_flat_all.csv.
+This file must be downloaded manually from the RetroRules archive.
+
+Download Procedure:
+
+a. Visit: https://retrorules.org/dl
+b. Scroll to the Archives section.
+c. Open the rr02 entry.
+d. Under MNX-based Dataset (For RetroPath 2.0, Radii 1–8, Explicit Hydrogens), click Download.
+   This will redirect to a Zenodo archive containing a .tar.gz file.
+e. Download and extract the archive.
+f. Inside the extracted folder, locate:
+     retrorules_rr02_rp2_flat_all.csv
+g. Place this file into a directory of your choice, for example:
+    retrorules/
+h. Open your RetroRules-based step script:
+    original_pipeline/biotransformation_prediction.py
+i. Update the RetroRules file path:
+    RETRO_RULES_PATH = "resources/retrorules/retrorules_rr02_rp2_flat_all.csv"
+
+Only after this configuration should users run the RetroRules-based reverse biotransformation step.
 
 **Still in `rdkit_env`:**
 ```bash
