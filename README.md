@@ -169,7 +169,7 @@ CSV containing:
 - Predicted SMILES
 - InChIKey
 - Compound name
-- Rank (top 20 analogs)
+- Rank (top 20 analogues)
 
 ---
 
@@ -213,9 +213,9 @@ f. Inside the extracted folder, locate:
 g. Place this file into a directory of your choice, for example:
     retrorules/
 h. Open your RetroRules-based step script:
-    original_pipeline/biotransformation_prediction.py
+    original_pipeline/retrorules_reverse.py
 i. Update the RetroRules file path:
-    RETRO_RULES_PATH = "resources/retrorules/retrorules_rr02_rp2_flat_all.csv"
+    retrorules_path= "resources/retrorules/retrorules_rr02_rp2_flat_all.csv"
 
 Only after this configuration should users run the RetroRules-based reverse biotransformation step.
 
