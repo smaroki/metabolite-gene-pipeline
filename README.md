@@ -145,12 +145,9 @@ Place all 8 downloaded files from Zenodo inside this folder.
 3. Before running the script, update the path of MS2Lib inside `ms2query_prediction.py`:
 Important: Update the Library Path in the Script
 Inside ms2query_prediction.py, update the directory path pointing to your MS2 library:
-MS2_LIBRARY_DIR = "path/to/ms2_library/"
+LIBRARY_DIR = "path/to/ms2_library/"
 Make sure this path correctly matches the location where you saved the 8 files.
 
-
-```python
-ms2lib_path = "resources/ms2library"
 
 Then run:-
 
