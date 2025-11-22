@@ -26,8 +26,8 @@ Multiple Python environments are required due to strict version dependencies.
 |------------|----------------|---------|
 | `ms2query-env` | **3.10.8–3.10.18** | MS2Query inference, MatchMS |
 | `rdkit_env` | **3.10.x** | RDKit validation + RetroRules reverse biotransformation |
-| `py313_env` | **3.13.3** | Prerequisites, validation pipeline, UniProt mapping |
-| `py312_env` | **3.12.7** | Cytoscape-style metabolite–gene table formatting |
+| `py313_env` | **3.13.3** | Prerequisites, validation pipeline|
+| `py312_env` | **3.12.7** | Cytoscape-style metabolite–gene table formatting, UniProt mapping |
 
 ### Software Dependencies
 
@@ -58,7 +58,7 @@ conda install -c conda-forge rdkit
 
 ### Python 3.13.3 Environment
 
-(Prerequisites + validation pipeline + UniProt mapping)
+(Prerequisites + validation pipeline)
 ```bash
 conda create -n py313_env python=3.13.3
 conda activate py313_env
@@ -67,7 +67,7 @@ pip install requests pandas numpy lxml simplejson
 
 ### Python 3.12.7 Environment
 
-(Cytoscape network table generation)
+(Cytoscape network table generation + UniProt mapping)
 ```bash
 conda create -n py312_env python=3.12.7
 conda activate py312_env
@@ -111,6 +111,7 @@ metabolite-gene-pipeline/
 **Environment:** `py313_env` (Python 3.13.3)
 ```bash
 conda activate py313_env
+Then run:- 
 python prerequisites/numpy_dependencies.py
 python prerequisites/gensim_installation.py
 python prerequisites/cleanup_if_not_running.py   # optional
@@ -234,9 +235,9 @@ SMILES from RDKit validation
 
 #### Step 4 — EC → Gene Mapping (UniProt API)
 
-**Environment:** `py313_env`
+**Environment:** `py312_env`
 ```bash
-conda activate py313_env
+conda activate py312_env
 python original_pipeline/ec_to_gene.py
 ```
 
@@ -271,7 +272,7 @@ Cleaned literature metabolites CSV
 **Output:**
 - Predicted SMILES
 
-**Note:** These SMILES can be used as input for the Original Pipeline (starting from Step 2)
+**Note:** These SMILES can be used as input for the Original Pipeline (starting from Step 2) to proceed to further steps for gene prediction.
 
 ---
 
