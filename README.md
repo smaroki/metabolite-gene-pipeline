@@ -1,4 +1,4 @@
-# Metabolite–Gene Association Pipeline
+# Metabolite-Gene Association Pipeline
 
 This repository contains all Python implementations used to build a complete metabolite-to-gene association workflow. It includes MS/MS analogue prediction, SMILES validation, reverse biotransformation (RetroRules + BioTransformer), EC→gene mapping (UniProt API), and optional network table generation for visualization.
 
@@ -126,7 +126,7 @@ python prerequisites/cleanup_if_not_running.py   # optional
 
 ### B. Original Pipeline
 
-#### Step 1 — MS/MS Analogue Prediction (MS2Query)
+#### Step 1 - MS/MS Analogue Prediction (MS2Query)
 
 **Environment:** `ms2query-env`  
 1. Before running ms2query_prediction.py, users must download the official MS2Query library files.
@@ -171,7 +171,7 @@ CSV containing:
 
 ---
 
-#### Step 2 — RDKit SMILES Validation
+#### Step 2 - RDKit SMILES Validation
 
 **Environment:** `rdkit_env`
 ```bash
@@ -190,7 +190,7 @@ CSV with:
 
 ---
 
-#### Step 3 — Reverse Biotransformation (RetroRules + BioTransformer)
+#### Step 3 - Reverse Biotransformation (RetroRules + BioTransformer)
 
 1. RetroRules File Required
 
@@ -233,7 +233,7 @@ SMILES from RDKit validation
 
 ---
 
-#### Step 4 — EC → Gene Mapping (UniProt API)
+#### Step 4 - EC → Gene Mapping (UniProt API)
 
 **Environment:** `py312_env`
 ```bash
@@ -258,7 +258,7 @@ Final CSV containing:
 
 ---
 
-### C. Validation Pipeline (Literature Metabolites)
+### C. Validation Pipeline (For Known Literature Metabolites)
 
 **Environment:** `py313_env`
 ```bash
@@ -272,14 +272,19 @@ Cleaned literature metabolites CSV
 **Output:**
 - Predicted SMILES
 
-**Note:** These SMILES can be used as input for the Original Pipeline (starting from Step 2) to proceed for further steps of gene prediction.
-~ After getting the output folder, 
+**Note:** These SMILES can be used as input for the Original Pipeline (starting from Step 2) to proceed to further steps of gene prediction(Respective environment to be used).
+~ After getting the final output folder, run:-
+**Still in `py313_env`:**
+python validation_pipeline/sorted_gene_list_ENRICHR.py
+
+The resultant list of genes can be used directly in the ENRICHR WEB SERVER.
+
 
 
 
 ---
 
-### D. Optional — Cytoscape Network Table
+### D. Optional - Cytoscape Network Table
 
 **Environment:** `py312_env`
 ```bash
@@ -292,7 +297,7 @@ python metabolite-gene_pairs_data_organisation.py
 - `edges` column = list of genes
 
 **Output:**
-- CSV compatible with Cytoscape network import
+- CSV compatible with Cytoscape network import(Preferably convert it to Tab-limited Text file)
 - Clean metabolite–gene edge table
 
 ---
@@ -311,7 +316,9 @@ Each stage outputs a file that becomes the input of the next stage.
 ### Validation Pipeline
 
 - Literature metabolite names CSV
-- Predicted SMILES used starting from Step 2 of the Original Pipeline
+- Predicted SMILES used
+- ALL other output files produced starting from Step 2 of the Original Pipeline
+
 
 ---
 
