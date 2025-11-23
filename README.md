@@ -298,7 +298,7 @@ python metabolite-gene_pairs_data_organisation.py
 
 **Output:**
 - CSV compatible with Cytoscape network import(Preferably convert it to Tab-limited Text file)
-- Clean metabolite–gene edge table
+- Clean metabolite-gene edge table
 
 ---
 
