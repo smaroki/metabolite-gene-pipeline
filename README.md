@@ -273,6 +273,9 @@ Cleaned literature metabolites CSV
 - Predicted SMILES
 
 **Note:** These SMILES can be used as input for the Original Pipeline (starting from Step 2) to proceed for further steps of gene prediction.
+~ After getting the output folder, 
+
+
 
 ---
 
