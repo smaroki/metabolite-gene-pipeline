@@ -245,7 +245,7 @@ Tests thresholds [0.0, 0.3, 0.5, 0.7, 0.9] and generates comparison statistics.
 **Environment:** `py312_env`
 ```bash
 conda activate py312_env
-python ec_to_gene/
+python ec_to_gene/ec_to_gene.py
 ```
 
 **What the script does:**
