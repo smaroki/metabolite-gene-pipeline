@@ -176,7 +176,7 @@ CSV containing:
 **Environment:** `rdkit_env`
 ```bash
 conda activate rdkit_env
-python original_pipeline/rdkit_validation.py
+Biotransformation_pipeline/rdkit_validation.py
 ```
 
 **Input:**  
