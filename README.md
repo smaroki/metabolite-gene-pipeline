@@ -154,7 +154,7 @@ Then run:-
 
 ```bash
 conda activate ms2query-env
-python original_pipeline/ms2query_prediction.py
+ms2query_prediction/ms2query_predict.py
 ```
 
 **Input:**
