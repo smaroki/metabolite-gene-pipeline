@@ -231,6 +231,13 @@ SMILES from RDKit validation
 - Reaction rules
 - Specificity and confidence categories
 
+### Sensitivity Analysis (Optional)
+To reproduce the threshold selection analysis:
+```bash
+python original_pipeline/retrorules_reverse_sensitivity_analysis.py
+```
+Tests thresholds [0.0, 0.3, 0.5, 0.7, 0.9] and generates comparison statistics.
+
 ---
 
 #### Step 4 - EC → Gene Mapping (UniProt API)
