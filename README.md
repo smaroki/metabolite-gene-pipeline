@@ -112,9 +112,9 @@ metabolite-gene-pipeline/
 ```bash
 conda activate py313_env
 Then run:- 
-python prerequisites/numpy_dependencies.py
-python prerequisites/gensim_installation.py
-python prerequisites/cleanup_if_not_running.py   # optional
+python pre-requisites/numpy_dependencies.py
+python pre-requisites/gensim_installation.py
+python pre-requisites/cleanup_if_not_running.py   # optional
 ```
 
 **These scripts ensure:**
@@ -154,7 +154,7 @@ Then run:-
 
 ```bash
 conda activate ms2query-env
-ms2query_prediction/ms2query_predict.py
+python ms2query_prediction/ms2query_predict.py
 ```
 
 **Input:**
@@ -176,7 +176,7 @@ CSV containing:
 **Environment:** `rdkit_env`
 ```bash
 conda activate rdkit_env
-Biotransformation_pipeline/rdkit_validation.py
+python Biotransformation_pipeline/rdkit_validation.py
 ```
 
 **Input:**  
@@ -219,7 +219,7 @@ Only after this configuration should users run the RetroRules-based reverse biot
 
 **Still in `rdkit_env`:**
 ```bash
-python original_pipeline/retrorules_reverse.py
+python Biotransformation_pipeline/retrorules_reverse.py
 ```
 
 **Input:**  
@@ -234,7 +234,7 @@ SMILES from RDKit validation
 ### Sensitivity Analysis (Optional)
 To reproduce the threshold selection analysis:
 ```bash
-python original_pipeline/retrorules_reverse_sensitivity_analysis.py
+python Biotransformation_pipeline/retrorules_reverse_sensitivity_analysis.py
 ```
 Tests thresholds [0.0, 0.3, 0.5, 0.7, 0.9] and generates comparison statistics.
 
@@ -245,7 +245,7 @@ Tests thresholds [0.0, 0.3, 0.5, 0.7, 0.9] and generates comparison statistics.
 **Environment:** `py312_env`
 ```bash
 conda activate py312_env
-python original_pipeline/ec_to_gene.py
+python ec_to_gene/
 ```
 
 **What the script does:**
