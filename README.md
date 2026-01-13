@@ -297,16 +297,18 @@ Add the following configuration block near the top of the UniProt mapping script
 # ============================================================================
 # ORGANISM FILTER CONFIGURATION
 # ============================================================================
-ORGANISM_ID = "9606"     # Human (Homo sapiens) - DEFAULT
-# ORGANISM_ID = "83333"  # E. coli K-12
+
+ORGANISM_ID = "9606"     # Human (Homo sapiens) – DEFAULT
+# ORGANISM_ID = "83333"  # Escherichia coli K-12
 # ORGANISM_ID = "559292" # Yeast (Saccharomyces cerevisiae S288C)
 # ORGANISM_ID = "10090"  # Mouse (Mus musculus)
 # ORGANISM_ID = "10116"  # Rat (Rattus norvegicus)
 # ORGANISM_ID = "3702"   # Arabidopsis thaliana
-# ORGANISM_ID = "7227"   # Fruit fly (Drosophila melanogaster)
-# ORGANISM_ID = None     # All organisms (no filter)
+# ORGANISM_ID = "7227"   # Drosophila melanogaster
+# ORGANISM_ID = None     # All organisms (disable filtering)
 
-print(f"Organism filter active: {ORGANISM_ID}")
+print(f"🔬 Organism filter active: {ORGANISM_ID}")
+
 
 
 For finding organism taxonomy IDs:
