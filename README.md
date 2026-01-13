@@ -263,6 +263,142 @@ Final CSV containing:
 - Match type (Perfect / Close / No match)
 - Precursor molecule link
 
+Species-Specific Gene Mapping: Implementation Guide
+
+The workflow implements a two-stage strategy for handling species specificity:
+
+Stage 1 – Precursor Prediction:
+Reverse biotransformation is performed using the RetroRules universal database or the human database, which are the only publicly available versions currently available.
+
+Stage 2 – EC → Gene Mapping:
+Organism-specific filtering is applied during UniProt-based gene annotation.
+
+This design maximises metabolite coverage during precursor inference while enabling taxonomic contextualisation at the gene and pathway annotation stage.
+
+Default Behaviour:- 
+
+Without modification:
+EC-to-UniProt mapping queries all organisms (cross-species).
+
+Returned results:
+Genes and proteins from any organism annotated with the corresponding EC number.
+
+Recommended use case:
+Exploratory metabolomics, cross-kingdom analyses, or datasets where organism context is unknown or mixed.
+
+Implementing Species-Specific Filtering
+
+Species restriction can be enabled by adding organism-level filters to the UniProt query.
+
+Step 1: Choose the Target Organism
+
+Add the following configuration block near the top of the UniProt mapping script(ec_to_gene.py) (after imports):
+
+# ============================================================================
+# ORGANISM FILTER CONFIGURATION
+# ============================================================================
+ORGANISM_ID = "9606"     # Human (Homo sapiens) - DEFAULT
+# ORGANISM_ID = "83333"  # E. coli K-12
+# ORGANISM_ID = "559292" # Yeast (Saccharomyces cerevisiae S288C)
+# ORGANISM_ID = "10090"  # Mouse (Mus musculus)
+# ORGANISM_ID = "10116"  # Rat (Rattus norvegicus)
+# ORGANISM_ID = "3702"   # Arabidopsis thaliana
+# ORGANISM_ID = "7227"   # Fruit fly (Drosophila melanogaster)
+# ORGANISM_ID = None     # All organisms (no filter)
+
+print(f"Organism filter active: {ORGANISM_ID}")
+
+
+For finding organism taxonomy IDs:
+
+-Visit: https://www.uniprot.org/taxonomy
+
+-Search for the species name
+
+-Use the numeric taxonomy identifier (e.g. Homo sapiens → 9606)
+
+Step 2: Modify the UniProt Query Function(in ec_to_gene.py)
+
+Original implementation:-
+
+def query_uniprot(ec_query, reviewed=True):
+    q = f"ec:{ec_query}"
+    if reviewed:
+        q += " AND reviewed:true"
+
+
+Updated implementation(with organism filtering):-
+
+def query_uniprot(ec_query, reviewed=True, organism=None):
+    q = f"ec:{ec_query}"
+    if reviewed:
+        q += " AND reviewed:true"
+    if organism:
+        q += f" AND organism_id:{organism}"
+
+Step 3: Update Function Calls
+
+In the process_ec_number function, add the organism argument to both UniProt queries:
+
+# Reviewed proteins
+gene, protein = query_uniprot(q, reviewed=True, organism=ORGANISM_ID)
+
+# Unreviewed proteins (fallback)
+gene, protein = query_uniprot(q, reviewed=False, organism=ORGANISM_ID)
+
+Step 4: Clear Cache When Changing Organisms
+
+The script caches UniProt responses to avoid repeated API calls. When switching organism filters, clear the cache:
+
+import os
+import tempfile
+
+cache_file = os.path.join(tempfile.gettempdir(), "uniprot_ec_cache.json")
+
+if os.path.exists(cache_file):
+    os.remove(cache_file)
+    print("Cache cleared for new organism filter")
+
+Common Organism Taxonomy IDs:- 
+Organism	Taxonomy ID
+Human	9606	
+Mouse	10090	
+Rat	10116	
+E. coli K-12	83333	
+Yeast (S. cerevisiae)	559292	
+Arabidopsis	3702	
+Zebrafish	7955
+C. elegans	6239	
+
+-Full taxonomy list: https://www.uniprot.org/taxonomy
+
+Expected Impact of Species Filtering:-
+
+-Reduced match rate:
+Species-specific filtering may reduce gene matches by approximately 30–70% compared to cross-species queries.
+
+-Increased biological relevance:
+Returned genes reflect the metabolic capacity of the target organism.
+
+-Improved pathway accuracy:
+Enables organism-appropriate pathway enrichment and functional interpretation.
+
+Troubleshooting
+
+Issue: No gene matches after applying organism filter
+Solution:
+
+-Verify the taxonomy ID using the UniProt taxonomy browser
+
+-Ensure the unreviewed protein fallback is enabled
+
+-Some EC numbers may not be annotated in the target organism, which reflects true biological absence
+
+Issue: Cache not updating after organism change
+Solution:
+Manually delete the cache file located at:
+{tempfile.gettempdir()}/uniprot_ec_cache.json-
+
 ---
 
 ### C. Validation Pipeline (For Known Literature Metabolites)
