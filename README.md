@@ -223,9 +223,10 @@ python Biotransformation_pipeline/retrorules_reverse.py
 ```
 
 **Input:**  
-SMILES from RDKit validation
+CSV with SMILES from RDKit validation
 
 **Output:**
+CSV with
 - Predicted precursor molecules
 - EC numbers
 - Reaction rules
