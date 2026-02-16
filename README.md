@@ -15,7 +15,7 @@ Both the **original pipeline** and the **validation pipeline** (for literature-d
 - [5. Input File Requirements](#5-input-file-requirements)
 - [6. Troubleshooting](#6-troubleshooting)
 - [7. Citation](#7-citation)
-vjv
+- 
 ---
 
 ## 1. System Requirements
