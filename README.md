@@ -196,25 +196,91 @@ CSV with:
 
 The workflow requires the RetroRules pre-parsed reaction rule file
 retrorules_rr02_rp2_flat_all.csv.
-This file must be downloaded manually from the RetroRules archive.
+Before running the pipeline, you must manually download the RetroRules dataset from Zenodo. The original RetroRules website is unreliable — use the Zenodo archive directly.
 
-Download Procedure:
+## Step 1: Download from Zenodo
 
-a. Visit: https://retrorules.org/dl
-b. Scroll to the Archives section.
-c. Open the rr02 entry.
-d. Under MNX-based Dataset (For RetroPath 2.0, Radii 1–8, Explicit Hydrogens), click Download.
-   This will redirect to a Zenodo archive containing a .tar.gz file.
-e. Download and extract the archive.
-f. Inside the extracted folder, locate:
-     retrorules_rr02_rp2_flat_all.csv
-g. Place this file into a directory of your choice, for example:
-    retrorules/
-h. Open your RetroRules-based step script:
-    original_pipeline/retrorules_reverse.py
-i. Update the RetroRules file path:
-    retrorules_path= "resources/retrorules/retrorules_rr02_rp2_flat_all.csv"
+Go to the official RetroRules `rr02` release on Zenodo:
 
+> **Primary link:** https://doi.org/10.5281/zenodo.5828017
+>
+> **Alternative link:** https://zenodo.org/records/5827017
+
+
+## Step 2: Select the Correct File
+
+On the Zenodo page, scroll to the **Files** section. Download the following archive:
+retrorules_rr02_rp2_flat_all.tar.gz
+
+> This is the MNX-based dataset for RetroPath 2.0, Radii 1–8, with Explicit Hydrogens.  
+> Expected file size: ~200–250 MB
+
+## Step 3: Extract the Archive
+
+**Linux / macOS:**
+
+```bash
+tar -xvzf retrorules_rr02_rp2_flat_all.tar.gz
+```
+
+**Windows:**
+
+Use [7-Zip](https://www.7-zip.org/) or WinRAR — Windows cannot open `.tar.gz` natively.
+
+1. Right-click the file → **7-Zip** → **Extract Here**
+2. You may need to extract twice: first `.gz` → `.tar`, then `.tar` → folder
+
+## Step 4: Locate the CSV
+
+After extraction, the folder structure will look like this:
+retrorules_rr02_rp2_flat_all/
+├── retrorules_rr02_rp2_flat_all.csv   ← THIS FILE
+
+## Step 5: Place the File in Your Project
+
+Move the CSV to the following path within the project:
+your_project/
+└── resources/
+└── retrorules/
+└── retrorules_rr02_rp2_flat_all.csv
+
+
+## Step 6: Update the Script Path
+
+In `original_pipeline/retrorules_reverse.py`, set the path as follows:
+
+```python
+retrorules_path = "resources/retrorules/retrorules_rr02_rp2_flat_all.csv"
+```
+
+> **Use a relative path** (as shown above) so the script works on any machine, rather than a hardcoded absolute path like `C:\Users\...`.
+
+## Verification
+
+After placing the file, run the following in Python to confirm it loaded correctly:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("resources/retrorules/retrorules_rr02_rp2_flat_all.csv")
+print(df.shape)
+print(df.columns.tolist())
+print(df.head())
+```
+
+Expected output: **~200,000+ rows** and columns including `Rule ID`, `Legacy ID`, `Reaction ID`, `Diameter`, `Rule SMARTS`, etc.
+
+## Backup Sources
+
+If Zenodo is unavailable or slow, try these alternatives:
+
+| Option | Link |
+|--------|------|
+| Alternative Zenodo record (older) | https://zenodo.org/records/5828017 |
+| Search all Zenodo RetroRules releases | https://zenodo.org/search?q=retrorules |
+| GitHub mirrors (community) | Search GitHub for `retrorules_rr02_rp2_flat_all.csv` |
+
+When using the Zenodo search, pick the latest `rr02` release.
 Only after this configuration should users run the RetroRules-based reverse biotransformation step.
 
 **Still in `rdkit_env`:**
