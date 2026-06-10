@@ -5,105 +5,163 @@ from pathlib import Path
 from matchms.importing import load_from_mgf
 from matchms.filtering import (
     default_filters,
-    normalize_intensities, 
+    normalize_intensities,
     select_by_mz,
     add_losses,
     require_minimum_number_of_peaks
 )
-from ms2query import create_library_object_from_one_dir
+from ms2query import MS2Library
 from ms2query.utils import SettingsRunMS2Query
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-INPUT_MGF = Path(r"C:\Users\dell\OneDrive\Desktop\Raw files\FM2B5short.mgf")
-OUTPUT_CSV = Path(r"C:\Users\dell\Desktop\Final Manuscript Data\Original pipeline output\FM2B5_predictions.csv")
-LIBRARY_DIR = Path(r"C:\Users\dell\OneDrive\Desktop\Raw files\ms2query_lib")
+INPUT_MGF   = Path(r"C:\Users\palokaich\Desktop\FF2.mgf")
+OUTPUT_CSV  = Path(r"D:\ms2query_results\Analogues.csv")
+LIBRARY_DIR = Path(r"D:\downloads\ms2query_lib-20260610T102616Z-3-001\ms2query_lib")
 
-# RELAXED PARAMETERS
-MIN_PEAKS = 3
-MZ_MIN = 0
-MZ_MAX = 2000
-TOP_N_RESULTS = 20
+# SEARCH PARAMETERS
+MIN_PEAKS      = 3
+MZ_MIN         = 0
+MZ_MAX         = 2000
+TOP_N_RESULTS  = 20
 
 print("=" * 80)
-print("MS2Query: ANALOG SEARCH (Fixed API)")
+print("MS2Query: ANALOG SEARCH")
 print("=" * 80)
 
 # ============================================================================
-# STEP 1: Load Spectra
+# STEP 1: Validate Library Directory
 # ============================================================================
-print("\n[1/5] Loading spectra...")
+print("\n[1/6] Validating library directory...")
+
+required_files = {
+    "sqlite_file_name"           : "ms2query_library.sqlite",
+    "s2v_model_file_name"        : "spec2vec_model.model",
+    "ms2ds_model_file_name"      : "ms2deepscore_model.pt",
+    "ms2query_model_file_name"   : "ms2query_model.onnx",
+    "s2v_embeddings_file_name"   : "s2v_embeddings.parquet",
+    "ms2ds_embeddings_file_name" : "ms2ds_embeddings.parquet",
+}
+
+if not LIBRARY_DIR.exists():
+    raise FileNotFoundError(
+        f"Library directory not found:\n  {LIBRARY_DIR}\n"
+        f"Please check the path and ensure the drive is mounted."
+    )
+
+missing = []
+for arg, fname in required_files.items():
+    fpath = LIBRARY_DIR / fname
+    if not fpath.exists():
+        missing.append(fname)
+    else:
+        size_mb = fpath.stat().st_size / (1024 ** 2)
+        print(f"   ✓ {fname}  ({size_mb:.1f} MB)")
+
+if missing:
+    raise FileNotFoundError(
+        f"The following required library files are missing:\n"
+        + "\n".join(f"   - {f}" for f in missing)
+    )
+
+print("   All library files present.")
+
+# ============================================================================
+# STEP 2: Load and Preprocess Spectra
+# ============================================================================
+print(f"\n[2/6] Loading spectra from:\n   {INPUT_MGF}")
+
+if not INPUT_MGF.exists():
+    raise FileNotFoundError(f"MGF input file not found:\n  {INPUT_MGF}")
+
 spectra = list(load_from_mgf(str(INPUT_MGF)))
-print(f"Loaded {len(spectra)} spectra")
+print(f"   Loaded {len(spectra)} spectra")
 
 if len(spectra) > 0:
     first = spectra[0]
-    print(f"\nFirst spectrum:")
-    print(f"   Precursor m/z: {first.metadata.get('precursor_mz', 'N/A')}")
-    print(f"   Peaks: {len(first.peaks.mz)}")
+    print(f"\n   First spectrum preview:")
+    print(f"      Precursor m/z : {first.metadata.get('precursor_mz', 'N/A')}")
+    print(f"      Number of peaks: {len(first.peaks.mz)}")
 
-# ============================================================================
-# STEP 2: Preprocess Spectra
-# ============================================================================
-print(f"\n[2/5] Preprocessing...")
+print(f"\n[3/6] Preprocessing spectra...")
+print(f"   Parameters: min_peaks={MIN_PEAKS}, mz_range=[{MZ_MIN}, {MZ_MAX}]")
 
 processed = []
+skipped   = 0
+
 for i, spec in enumerate(spectra):
     try:
         s = default_filters(spec)
         if s is None:
+            skipped += 1
             continue
         s = normalize_intensities(s)
         s = select_by_mz(s, mz_from=MZ_MIN, mz_to=MZ_MAX)
         if s is None:
+            skipped += 1
             continue
         s = require_minimum_number_of_peaks(s, n_required=MIN_PEAKS)
         if s is None:
+            skipped += 1
             continue
         s = add_losses(s)
         processed.append(s)
     except Exception as e:
-        print(f"   Warning: Spectrum {i} failed: {e}")
+        print(f"   Warning: Spectrum {i} failed preprocessing: {e}")
+        skipped += 1
 
-print(f"{len(processed)}/{len(spectra)} spectra passed preprocessing")
+print(f"   Passed : {len(processed)}/{len(spectra)} spectra")
+print(f"   Skipped: {skipped} spectra (too few peaks or filtering failure)")
 
 if len(processed) == 0:
-    raise ValueError("No spectra survived preprocessing!")
+    raise ValueError(
+        "No spectra survived preprocessing. "
+        "Try lowering MIN_PEAKS or widening the MZ_MIN/MZ_MAX range."
+    )
 
+# Free raw spectra from memory
 del spectra
 gc.collect()
 
 # ============================================================================
-# STEP 3: Load Library
+# STEP 3: Load MS2Query Library
 # ============================================================================
-print("\n[3/5] Loading MS2Query library...")
-ms2library = create_library_object_from_one_dir(str(LIBRARY_DIR))
-print(f"Library loaded: {ms2library.ionization_mode} mode")
+print(f"\n[4/6] Loading MS2Query library...")
 
-# ============================================================================
-# STEP 4: Configure Search Settings (OPTIONAL)
-# ============================================================================
-print("\n[4/5] Configuring search...")
+ms2library = MS2Library(
+    sqlite_file_name           = str(LIBRARY_DIR / "ms2query_library.sqlite"),
+    s2v_model_file_name        = str(LIBRARY_DIR / "spec2vec_model.model"),
+    ms2ds_model_file_name      = str(LIBRARY_DIR / "ms2deepscore_model.pt"),
+    ms2query_model_file_name   = str(LIBRARY_DIR / "ms2query_model.onnx"),
+    s2v_embeddings_file_name   = str(LIBRARY_DIR / "s2v_embeddings.parquet"),
+    ms2ds_embeddings_file_name = str(LIBRARY_DIR / "ms2ds_embeddings.parquet"),
+)
 
-# Use default settings or customize if needed
-# Common parameters: ms2query_score_cutoff, ms2ds_score_cutoff
-settings = None  # Use defaults for now
-
-# If you want to filter by score later, uncomment:
-# settings = SettingsRunMS2Query(
-#     ms2query_score_cutoff=0.5,  # Minimum score threshold
-# )
-
-print(f"   Using default settings (will get all matches)")
+print("   Library loaded successfully.")
 
 # ============================================================================
-# STEP 5: Run Analog Search - THE CORRECT WAY!
+# STEP 4: Configure Search Settings
 # ============================================================================
-print(f"\n[5/5] Running analog search on {len(processed)} spectra...")
-print("   (This may take a few minutes...)\n")
+print("\n[5/6] Configuring search settings...")
 
-# Method 1: Use analog_search_yield_df (recommended for processing)
+settings = SettingsRunMS2Query(
+    nr_of_top_analogs_to_save   = TOP_N_RESULTS,  # 20, from your config
+    minimal_ms2query_metascore  = 0,              # retain all matches
+    preselection_cut_off        = MZ_MAX,         # 2000, from your config
+)
+
+print(f"   Top analogs to save     : {TOP_N_RESULTS}")
+print(f"   Minimal metascore       : 0 (all matches retained)")
+print(f"   Preselection m/z cutoff : {MZ_MAX}")
+
+
+# ============================================================================
+# STEP 5: Run Analog Search
+# ============================================================================
+print(f"\n[6/6] Running analog search on {len(processed)} spectra...")
+print("   This may take several minutes depending on dataset size.\n")
+
 all_results = []
 
 for i, df_result in enumerate(ms2library.analog_search_yield_df(
@@ -111,153 +169,148 @@ for i, df_result in enumerate(ms2library.analog_search_yield_df(
     settings=settings,
     progress_bar=True
 )):
-    # df_result is a DataFrame with results for one spectrum
     all_results.append(df_result)
-    
     if (i + 1) % 10 == 0:
-        print(f"   Processed {i+1}/{len(processed)} spectra")
+        print(f"   Progress: {i + 1}/{len(processed)} spectra processed")
 
-print(f"\nSearch complete!")
+print(f"\n   Search complete. Results collected for {len(all_results)} spectra.")
 
 # ============================================================================
-# STEP 6: Combine and Format Results
+# STEP 6: Combine, Format, and Save Results
 # ============================================================================
-print("\n[6/6] Formatting results...")
+print("\n[Post-processing] Formatting and saving results...")
 
 if len(all_results) == 0:
-    print("WARNING: No results found!")
+    print("WARNING: No results returned. Check your MGF file and library compatibility.")
 else:
-    # Combine all DataFrames
     df_combined = pd.concat(all_results, ignore_index=True)
-    
-    print(f"   Total matches: {len(df_combined)}")
-    print(f"   Columns: {list(df_combined.columns)}")
-    
-    # Show what columns are available
-    print(f"\nAvailable result columns:")
-    for col in df_combined.columns:
-        print(f"   - {col}")
-    
-    # First, let's see what columns we actually have
-    print(f"\nInspecting columns for SMILES/InChIKey...")
-    print(f"   All columns: {list(df_combined.columns)}")
-    
-    # Look for SMILES in various possible column names
-    smiles_candidates = [col for col in df_combined.columns if 'smiles' in col.lower()]
-    inchikey_candidates = [col for col in df_combined.columns if 'inchi' in col.lower()]
-    
+
+    print(f"   Total raw matches : {len(df_combined)}")
+    print(f"   Columns available : {list(df_combined.columns)}")
+
+    # ── Inspect for SMILES / InChIKey columns ────────────────────────────
+    smiles_candidates  = [c for c in df_combined.columns if 'smiles'  in c.lower()]
+    inchikey_candidates= [c for c in df_combined.columns if 'inchi'   in c.lower()]
+
     if smiles_candidates:
-        print(f"   Found SMILES columns: {smiles_candidates}")
+        print(f"   SMILES columns found   : {smiles_candidates}")
+    else:
+        print("   WARNING: No SMILES columns detected in results.")
+
     if inchikey_candidates:
-        print(f"   Found InChIKey columns: {inchikey_candidates}")
-    
-    # Show sample row to debug
-    if len(df_combined) > 0:
-        print(f"\nSample row (first match):")
-        first_row = df_combined.iloc[0]
-        for col in df_combined.columns:
-            val = first_row[col]
-            if isinstance(val, str) and len(val) > 100:
-                val = val[:100] + "..."
-            print(f"   {col}: {val}")
-    
-    # Format output - limit to TOP_N_RESULTS per spectrum
+        print(f"   InChIKey columns found : {inchikey_candidates}")
+    else:
+        print("   WARNING: No InChIKey columns detected in results.")
+
+    # ── Sample row for debugging ──────────────────────────────────────────
+    print(f"\n   Sample row (first match):")
+    first_row = df_combined.iloc[0]
+    for col in df_combined.columns:
+        val = first_row[col]
+        if isinstance(val, str) and len(val) > 100:
+            val = val[:100] + "..."
+        print(f"      {col}: {val}")
+
+    # ── Build output rows ─────────────────────────────────────────────────
     output_data = []
-    
+
     for _, row in df_combined.iterrows():
-        # Get query spectrum info
-        spectrum_id = row.get('query_spectrum_nr', row.get('spectrum_id', 'unknown'))
-        precursor_mz = row.get('precursor_mz_query', row.get('precursor_mz', 'N/A'))
-        
-        # Get match info - try multiple column names
-        score = row.get('ms2query_model_prediction', row.get('analog_score', row.get('score', 0.0)))
-        name = row.get('analog_compound_name', row.get('compound_name', row.get('name', 'Unknown')))
-        
-        # Try to get SMILES from different possible columns
+
+        spectrum_id   = row.get('query_spectrum_nr',
+                         row.get('spectrum_id', 'unknown'))
+        precursor_mz  = row.get('precursor_mz_query',
+                         row.get('precursor_mz', 'N/A'))
+        score         = row.get('ms2query_model_prediction',
+                         row.get('analog_score',
+                         row.get('score', 0.0)))
+        name          = row.get('analog_compound_name',
+                         row.get('compound_name',
+                         row.get('name', 'Unknown')))
+
+        # SMILES — try multiple possible column names
         smiles = ''
-        for smiles_col in ['smiles', 'analog_smiles', 'canonical_smiles', 'isomeric_smiles', 'SMILES']:
-            if smiles_col in row.index and pd.notna(row[smiles_col]):
-                smiles = str(row[smiles_col])
+        for col in ['smiles', 'analog_smiles', 'canonical_smiles',
+                    'isomeric_smiles', 'SMILES']:
+            if col in row.index and pd.notna(row[col]):
+                smiles = str(row[col])
                 break
-        
-        # Try to get InChIKey from different possible columns  
+
+        # InChIKey — try multiple possible column names
         inchikey = ''
-        for inchi_col in ['inchikey', 'analog_inchikey', 'inchikey_14', 'InChIKey', 'inchi_key']:
-            if inchi_col in row.index and pd.notna(row[inchi_col]):
-                inchikey = str(row[inchi_col])
+        for col in ['inchikey', 'analog_inchikey', 'inchikey_14',
+                    'InChIKey', 'inchi_key']:
+            if col in row.index and pd.notna(row[col]):
+                inchikey = str(row[col])
                 break
-        
-        # Get additional metadata if available
-        formula = row.get('formula', row.get('molecular_formula', ''))
-        precursor_mz_match = row.get('precursor_mz_library', row.get('library_precursor_mz', ''))
-        
+
+        formula            = row.get('formula', row.get('molecular_formula', ''))
+        precursor_mz_match = row.get('precursor_mz_library',
+                              row.get('library_precursor_mz', ''))
+
         output_data.append({
-            'spectrum_id': spectrum_id,
+            'spectrum_id'       : spectrum_id,
             'query_precursor_mz': precursor_mz,
-            'analog_score': round(float(score), 4),
-            'compound_name': name,
-            'smiles': smiles,
-            'inchikey': inchikey,
-            'formula': formula,
+            'analog_score'      : round(float(score), 4),
+            'compound_name'     : name,
+            'smiles'            : smiles,
+            'inchikey'          : inchikey,
+            'formula'           : formula,
             'match_precursor_mz': precursor_mz_match,
         })
-    
+
     df_output = pd.DataFrame(output_data)
-    
-    # Check if we got any SMILES
-    smiles_count = df_output['smiles'].notna().sum()
-    print(f"\n   Rows with SMILES: {smiles_count}/{len(df_output)}")
-    
-    # Sort by spectrum and score
+
+    # ── SMILES coverage report ────────────────────────────────────────────
+    smiles_count = (df_output['smiles'] != '').sum()
+    print(f"\n   Rows with SMILES   : {smiles_count}/{len(df_output)}")
+
+    # ── Sort and rank ─────────────────────────────────────────────────────
     df_output = df_output.sort_values(
-        ['spectrum_id', 'analog_score'], 
+        ['spectrum_id', 'analog_score'],
         ascending=[True, False]
     )
-    
-    # Add rank and keep only TOP_N_RESULTS per spectrum
     df_output['rank'] = df_output.groupby('spectrum_id').cumcount() + 1
     df_output = df_output[df_output['rank'] <= TOP_N_RESULTS]
-    
-    # Save
+
+    # ── Save ──────────────────────────────────────────────────────────────
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     df_output.to_csv(OUTPUT_CSV, index=False)
-    
-    # ========================================================================
-    # STATISTICS
-    # ========================================================================
+
+    # ── Summary statistics ────────────────────────────────────────────────
     print(f"\n{'=' * 80}")
     print(f"ANALYSIS COMPLETE")
     print(f"{'=' * 80}")
-    
-    print(f"\nOutput: {OUTPUT_CSV}")
-    print(f"Total matches: {len(df_output)}")
-    print(f"Spectra analyzed: {len(processed)}")
-    print(f"Spectra with matches: {df_output['spectrum_id'].nunique()}")
-    
-    print(f"\nScore Statistics:")
-    print(f"   Mean:   {df_output['analog_score'].mean():.4f}")
-    print(f"   Median: {df_output['analog_score'].median():.4f}")
-    print(f"   Max:    {df_output['analog_score'].max():.4f}")
-    print(f"   Min:    {df_output['analog_score'].min():.4f}")
-    
-    print(f"\nTOP 5 MATCHES:")
+    print(f"\n   Output file      : {OUTPUT_CSV}")
+    print(f"   Spectra analyzed : {len(processed)}")
+    print(f"   Spectra matched  : {df_output['spectrum_id'].nunique()}")
+    print(f"   Total rows saved : {len(df_output)}")
+
+    print(f"\n   Score statistics:")
+    print(f"      Mean   : {df_output['analog_score'].mean():.4f}")
+    print(f"      Median : {df_output['analog_score'].median():.4f}")
+    print(f"      Max    : {df_output['analog_score'].max():.4f}")
+    print(f"      Min    : {df_output['analog_score'].min():.4f}")
+
+    print(f"\n   Top 5 matches by score:")
     top5 = df_output.nlargest(5, 'analog_score')
     for i, (_, row) in enumerate(top5.iterrows(), 1):
-        print(f"   {i}. {row['compound_name'][:50]}")
-        print(f"      Score: {row['analog_score']:.4f} | Spectrum: {row['spectrum_id']}")
-    
-    print(f"\nSample Results (with SMILES):")
-    display_cols = ['spectrum_id', 'compound_name', 'analog_score', 'smiles', 'inchikey']
-    available_cols = [col for col in display_cols if col in df_output.columns]
+        print(f"      {i}. {str(row['compound_name'])[:55]}")
+        print(f"         Score: {row['analog_score']:.4f}  |  "
+              f"Spectrum: {row['spectrum_id']}")
+
+    print(f"\n   Sample output (first 10 rows):")
+    display_cols   = ['spectrum_id', 'compound_name', 'analog_score', 'smiles', 'inchikey']
+    available_cols = [c for c in display_cols if c in df_output.columns]
     print(df_output[available_cols].head(10).to_string(index=False, max_colwidth=60))
-    
-    print(f"\nDone!")
+
+    print(f"\n{'=' * 80}")
+    print(f"Done! Results saved to: {OUTPUT_CSV}")
+    print(f"{'=' * 80}")
 
 # ============================================================================
-# ALTERNATIVE: Direct CSV Export (even simpler!)
+# ALTERNATIVE: Direct CSV Export (simpler, no post-processing control)
+# Uncomment below and comment out Steps 5-6 above to use this instead.
 # ============================================================================
-# Uncomment this to use the direct CSV export method:
-#
 # print("\n[Alternative] Direct CSV export...")
 # ms2library.analog_search_store_in_csv(
 #     query_spectra=processed,
