@@ -127,36 +127,6 @@ python pre-requisites/cleanup_if_not_running.py   # optional
 
 ### B. Original Pipeline
 
-#### Step 1 - MS/MS Analogue Prediction (MS2Query)
-
-**Environment:** `ms2query-env`  
-1. Before running ms2query_prediction.py, users must download the official MS2Query library files.
-Download the MS2 Library (Version V8)
-
-All required files are available at the following Zenodo DOI:
-
-https://doi.org/10.5281/zenodo.13348638
- (Version V8)
-
-Download all 8 files provided in this Zenodo record, as MS2Query requires the complete set for correct operation.
-
-2. After downloading:
-Create a directory named: ms2_library/
-Place all 8 downloaded files from Zenodo inside this folder.
-
-3. Before running the script, update the path of MS2Lib inside `ms2query_prediction.py`:
-Important: Update the Library Path in the Script
-Inside ms2query_prediction.py, update the directory path pointing to your MS2 library:
-LIBRARY_DIR = "path/to/ms2_library/"
-Make sure this path correctly matches the location where you saved the 8 files.
-
-
-Then run:-
-
-```bash
-conda activate ms2query-env
-python ms2query_prediction/ms2query_predict.py
-```
 ### Generating the Input MGF File Using MSConvert
 
 The workflow requires tandem mass spectrometry spectra in Mascot Generic Format (`.mgf`). Raw SCIEX LC-MS/MS files (`.wiff`) should therefore be converted to `.mgf` format prior to analysis using **MSConvert**, which is distributed as part of the ProteoWizard software suite.
@@ -190,6 +160,37 @@ Before starting the conversion process, ensure that:
 * Any LC-MS/MS dataset that can be successfully converted into a valid `.mgf` file containing precursor and fragment ion information can be processed by the pipeline.
 * The resulting `.mgf` file serves as the starting input for Stage 1 (MS2Query analogue retrieval).
 
+
+#### Step 1 - MS/MS Analogue Prediction (MS2Query)
+
+**Environment:** `ms2query-env`  
+1. Before running ms2query_prediction.py, users must download the official MS2Query library files.
+Download the MS2 Library (Version V8)
+
+All required files are available at the following Zenodo DOI:
+
+https://doi.org/10.5281/zenodo.13348638
+ (Version V8)
+
+Download all 8 files provided in this Zenodo record, as MS2Query requires the complete set for correct operation.
+
+2. After downloading:
+Create a directory named: ms2_library/
+Place all 8 downloaded files from Zenodo inside this folder.
+
+3. Before running the script, update the path of MS2Lib inside `ms2query_prediction.py`:
+Important: Update the Library Path in the Script
+Inside ms2query_prediction.py, update the directory path pointing to your MS2 library:
+LIBRARY_DIR = "path/to/ms2_library/"
+Make sure this path correctly matches the location where you saved the 8 files.
+
+
+Then run:-
+
+```bash
+conda activate ms2query-env
+python ms2query_prediction/ms2query_predict.py
+```
 
 **Input:**
 - `.mgf` file containing MS/MS spectra (path must be specified inside the script)
