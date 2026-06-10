@@ -105,6 +105,7 @@ metabolite-gene-pipeline/
 ---
 
 ## 4. Running the Pipelines
+Important Reminder: Before running the Python scripts in each of the steps, make sure your input path file and output directory match to avoid errors.
 
 ### A. Prerequisites (Run First)
 
