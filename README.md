@@ -157,6 +157,39 @@ Then run:-
 conda activate ms2query-env
 python ms2query_prediction/ms2query_predict.py
 ```
+### Generating the Input MGF File Using MSConvert
+
+The workflow requires tandem mass spectrometry spectra in Mascot Generic Format (`.mgf`). Raw SCIEX LC-MS/MS files (`.wiff`) should therefore be converted to `.mgf` format prior to analysis using **MSConvert**, which is distributed as part of the ProteoWizard software suite.
+
+#### Important Requirements
+
+Before starting the conversion process, ensure that:
+
+* The raw data file (`.wiff`) and its corresponding metadata file (`.wiff.scan`) are present in the **same directory**.
+* Both files must have identical filenames except for the extension.
+* MSConvert will typically fail to read SCIEX data correctly if the associated `.wiff.scan` file is missing.
+* Only the `.wiff` file needs to be selected inside MSConvert; the software automatically detects the corresponding `.wiff.scan` file when both are located together.
+
+#### Conversion Procedure
+
+1. Launch **MSConvert** (ProteoWizard).
+2. Click **Browse** and select the desired `.wiff` file.
+3. Confirm that the file appears in the input file list.
+4. Under the **Filters** section, select **Peak Picking** from the available filter options.
+5. Choose **Vendor** as the peak-picking algorithm.
+6. Click **Add** so that the Peak Picking filter appears in the active filter list.
+7. Select **MGF** as the output format.
+8. Choose an output directory.
+9. Click **Start** to begin conversion.
+
+#### Notes
+
+* Vendor peak picking is recommended because it uses the instrument manufacturer's native centroiding algorithm.
+* The workflow operates on MS/MS spectra contained within the generated `.mgf` file.
+* Retention time information is not required for downstream execution of the workflow.
+* Any LC-MS/MS dataset that can be successfully converted into a valid `.mgf` file containing precursor and fragment ion information can be processed by the pipeline.
+* The resulting `.mgf` file serves as the starting input for Stage 1 (MS2Query analogue retrieval).
+
 
 **Input:**
 - `.mgf` file containing MS/MS spectra (path must be specified inside the script)
