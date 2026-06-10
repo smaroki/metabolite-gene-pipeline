@@ -109,9 +109,9 @@ Important Reminder: Before running the Python scripts in each of the steps, make
 
 ### A. Prerequisites (Run First)
 
-**Environment:** `py313_env` (Python 3.13.3)
+**Environment:** `ms2query-env` (Python 3.10.18)
 ```bash
-conda activate py313_env
+conda activate ms2query-env
 Then run:- 
 python pre-requisites/numpy_dependencies.py
 python pre-requisites/gensim_installation.py
