@@ -24,9 +24,9 @@ Multiple Python environments are required due to strict version dependencies.
 
 | Environment | Python Version | Purpose |
 |------------|----------------|---------|
-| `ms2query-env` | **3.10.8–3.10.18** | MS2Query inference, MatchMS |
+| `ms2query-env` | **3.10.8–3.10.18** | MS2Query inference, MatchMS, Prerequisites |
 | `rdkit_env` | **3.10.x** | RDKit validation + RetroRules reverse biotransformation |
-| `py313_env` | **3.13.3** | Prerequisites, validation pipeline|
+| `py313_env` | **3.13.3** | Validation pipeline |
 | `py312_env` | **3.12.7** | Cytoscape-style metabolite–gene table formatting, UniProt mapping |
 
 ### Software Dependencies
