@@ -75,7 +75,7 @@ def process_ec_number(ec_number):
     for q in queries:
         gene, protein = query_uniprot(q, reviewed=True)
         if gene or protein:
-            match_type = "Perfect match"
+            match_type = "Reviewed UniProt match"
             break
     
     # Fallback to unreviewed
@@ -83,7 +83,7 @@ def process_ec_number(ec_number):
         for q in queries:
             gene, protein = query_uniprot(q, reviewed=False)
             if gene or protein:
-                match_type = "Close match"
+                match_type = "Unreviewed UniProt match"
                 break
     
     if not gene and not protein:
@@ -142,6 +142,6 @@ df.to_csv(output_file, index=False)
 
 print(f"\nDone! Output saved to:\n{output_file}")
 print(f"Total results: {len(df)}")
-print(f"   Perfect matches: {sum(1 for m in match_types if m == 'Perfect match')}")
-print(f"   Close matches: {sum(1 for m in match_types if m == 'Close match')}")
+print(f"   Reviewed UniProt matches: {sum(1 for m in match_types if m == 'Reviewed UniProt match')}")
+print(f"   Unreviewed UniProt matches: {sum(1 for m in match_types if m == 'Unreviewed UniProt match')}")
 print(f"   No matches: {sum(1 for m in match_types if m == 'No match')}")
