@@ -10,9 +10,8 @@ from tqdm import tqdm
 Validated_SMILES_path = r"D:\OneDrive\Desktop\SMAROKI\ValidatedSMILES.csv"
 retrorules_path = r"E:\Downloads\retrorules_rr02_rp2_hs (1)\retrorules_rr02_rp2_hs\retrorules_rr02_rp2_flat_all.csv"
 
-# Output location
-output_folder = r"D:\OneDrive\Desktop\SMAROKI"
-output_file = os.path.join(output_folder, "Predicted_Precursors.csv")
+# Save directly in SNEHANJALI folder as CSV
+output_file = r"D:\OneDrive\Desktop\SMAROKI\Predicted_Precursors.csv"
 
 # Confidence score threshold
 CONFIDENCE_THRESHOLD = 0.5
@@ -20,7 +19,7 @@ CONFIDENCE_THRESHOLD = 0.5
 # ============================================================================
 # Setup
 # ============================================================================
-os.makedirs(output_folder, exist_ok=True)
+os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
 # ============================================================================
 # Load and Filter RetroRules
@@ -140,7 +139,6 @@ for idx, row in tqdm(smiles_df.iterrows(), total=len(smiles_df), desc="Processin
 # ============================================================================
 results_df = pd.DataFrame(results)
 
-# Optional: reorder columns
 priority_cols = [
     'Metabolite Name',
     'HMDB IDs',
@@ -168,4 +166,3 @@ print(f"Total precursors predicted: {len(results_df)}")
 print("\nOutput saved to:")
 print(f"  {output_file}")
 print(f"{'='*70}")
-
