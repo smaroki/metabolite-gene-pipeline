@@ -10,7 +10,7 @@ from tqdm import tqdm
 Validated_SMILES_path = r"D:\OneDrive\Desktop\SMAROKI\ValidatedSMILES.csv"
 retrorules_path = r"E:\Downloads\retrorules_rr02_rp2_hs (1)\retrorules_rr02_rp2_hs\retrorules_rr02_rp2_flat_all.csv"
 
-# Save directly in SNEHANJALI folder as CSV
+# Save directly in folder as CSV
 output_file = r"D:\OneDrive\Desktop\SMAROKI\Predicted_Precursors.csv"
 
 # Confidence score threshold
